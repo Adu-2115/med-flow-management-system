@@ -33,6 +33,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     if (path.includes("/suppliers")) return "Supplier Management";
     if (path.includes("/reports")) return "Reports";
     if (path.includes("/analytics")) return "ML Analytics";
+    if (path.includes("/settings")) return "Settings";
     return "Pharmacy Management System";
   };
 

@@ -276,7 +276,7 @@ const Settings = () => {
                   Update Password
                 </Button>
               </form>
-            </CardHeader>
+            </CardContent>
           </Card>
 
           <Card className="mt-6">
