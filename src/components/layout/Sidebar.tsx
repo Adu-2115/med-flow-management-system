@@ -1,3 +1,4 @@
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -68,15 +69,15 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
         {!collapsed && (
           <div className="flex items-center gap-2 flex-1">
             <div className="h-8 w-8 rounded-full bg-pharmacy-purple flex items-center justify-center">
-              <span className="text-white font-bold">PMS</span>
+              <span className="text-white font-bold">H</span>
             </div>
-            <h1 className="font-bold text-lg">Pharmacy MS</h1>
+            <h1 className="font-bold text-lg">HaloMed</h1>
           </div>
         )}
         {collapsed && (
           <div className="flex-1 flex justify-center">
             <div className="h-8 w-8 rounded-full bg-pharmacy-purple flex items-center justify-center">
-              <span className="text-white font-bold">P</span>
+              <span className="text-white font-bold">H</span>
             </div>
           </div>
         )}

@@ -12,6 +12,7 @@ import Prescriptions from "./pages/Prescriptions";
 import Suppliers from "./pages/Suppliers";
 import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
