@@ -1,8 +1,7 @@
-
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/sonner";
+import { toast } from "@/components/ui/sonner";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,8 +53,6 @@ const SidebarItem = ({ icon: Icon, label, to, collapsed }: SidebarItemProps) => 
 );
 
 const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
-  const { toast } = useToast();
-  
   const handleLogout = () => {
     window.location.href = "/login";
   };
