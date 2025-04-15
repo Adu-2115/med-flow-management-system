@@ -5,19 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@halomed.com");
+  const [password, setPassword] = useState("password");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { signIn } = useAuth();
+  const isDevelopment = import.meta.env.DEV;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      // In development mode with test credentials, allow bypass
+      if (isDevelopment && email === "admin@halomed.com" && password === "password") {
+        console.info("Development mode: Using test credentials");
+        setTimeout(() => {
+          toast.success("Login successful", {
+            description: "Welcome to HaloMed (Development Mode)"
+          });
+          navigate("/dashboard");
+          setIsLoading(false);
+        }, 1000);
+        return;
+      }
+      
       await signIn(email, password);
       navigate("/dashboard");
     } catch (error) {

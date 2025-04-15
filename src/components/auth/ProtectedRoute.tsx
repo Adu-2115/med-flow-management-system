@@ -18,8 +18,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
+  // If development mode, allow access even without authentication
+  const isDevelopment = import.meta.env.DEV;
+  
   if (!user) {
-    return <Navigate to="/login" replace />;
+    if (isDevelopment) {
+      console.warn("Development mode: Allowing access to protected route without authentication");
+    } else {
+      return <Navigate to="/login" replace />;
+    }
   }
 
   return <>{children}</>;
