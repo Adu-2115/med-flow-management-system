@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,6 +108,12 @@ const Suppliers = () => {
     lastOrder: new Date().toISOString().split('T')[0],
     paymentStatus: "paid" as const
   });
+  
+  const showNotImplemented = () => {
+    toast.info("This feature is not implemented yet", {
+      description: "This is just a demo",
+    });
+  };
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -309,7 +314,6 @@ const Suppliers = () => {
         </CardContent>
       </Card>
       
-      {/* Add/Edit Supplier Dialog */}
       <Dialog open={addSupplierOpen} onOpenChange={setAddSupplierOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
