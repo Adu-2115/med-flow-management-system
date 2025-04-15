@@ -4,25 +4,30 @@ import { createClient } from "@supabase/supabase-js";
 import { toast } from "@/components/ui/sonner";
 
 // Initialize Supabase client with fallback values for development
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://your-project-url.supabase.co";
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "your-anon-key";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
 // Check if we have valid Supabase credentials
-const hasValidSupabaseConfig = supabaseUrl.includes("supabase.co") && supabaseKey.length > 10;
+const hasValidSupabaseConfig = supabaseUrl && supabaseKey && 
+  supabaseUrl.includes("supabase.co") && supabaseKey.length > 10;
 
 // Create the Supabase client only if we have valid credentials
 let supabase;
 try {
-  supabase = createClient(supabaseUrl, supabaseKey);
+  if (hasValidSupabaseConfig) {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  }
 } catch (error) {
   console.error("Failed to initialize Supabase client:", error);
 }
+
+export type UserRole = "admin" | "staff" | "customer";
 
 type User = {
   id: string;
   email: string;
   full_name?: string;
-  role?: string;
+  role?: UserRole;
 } | null;
 
 type AuthContextType = {
@@ -42,10 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // If Supabase is not configured, show a warning and set loading to false
     if (!hasValidSupabaseConfig || !supabase) {
-      console.warn("Supabase is not properly configured. Please set up environment variables.");
-      toast.error("Authentication configuration error", {
-        description: "Supabase connection details are missing or invalid",
-      });
+      console.warn("Supabase is not properly configured. The app will run in development mode only.");
       setLoading(false);
       return;
     }
@@ -79,35 +81,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
     
     // Set up auth state change listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-            
-          setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            full_name: userData?.full_name || '',
-            role: userData?.role || 'staff'
-          });
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
+    if (supabase) {
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            const { data: userData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+              
+            setUser({
+              id: session.user.id,
+              email: session.user.email!,
+              full_name: userData?.full_name || '',
+              role: userData?.role || 'staff'
+            });
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+          }
+          setLoading(false);
         }
-        setLoading(false);
-      }
-    );
-    
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
+      );
+      
+      return () => {
+        authListener?.subscription?.unsubscribe();
+      };
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
     if (!hasValidSupabaseConfig || !supabase) {
+      // In development mode, we'll use demo credentials
+      const isDevelopment = import.meta.env.DEV;
+      if (isDevelopment) {
+        // User type will be determined in the LoginForm component
+        return;
+      }
+      
       toast.error("Authentication error", {
         description: "Supabase connection is not configured properly"
       });
@@ -137,6 +148,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    // Clear session storage user type on logout
+    sessionStorage.removeItem('userType');
+    
     if (!hasValidSupabaseConfig || !supabase) {
       setUser(null);
       toast.info("Logged out", {
