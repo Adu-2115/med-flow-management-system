@@ -47,16 +47,16 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 
-// Sample inventory data
+// Sample inventory data with Indian names and rupee pricing
 const inventoryData = [
   {
     id: 1,
     name: "Paracetamol 500mg",
     category: "Analgesics",
     stock: 120,
-    price: 5.99,
+    price: 125.50,
     expiryDate: "2025-02-15",
-    supplier: "MediPharm",
+    supplier: "Sunpharma",
     status: "in-stock",
   },
   {
@@ -64,9 +64,9 @@ const inventoryData = [
     name: "Amoxicillin 250mg",
     category: "Antibiotics",
     stock: 85,
-    price: 12.50,
+    price: 350.75,
     expiryDate: "2024-12-10",
-    supplier: "PharmaCare",
+    supplier: "Cipla",
     status: "in-stock",
   },
   {
@@ -74,9 +74,9 @@ const inventoryData = [
     name: "Loratadine 10mg",
     category: "Antihistamines",
     stock: 45,
-    price: 8.75,
+    price: 180.25,
     expiryDate: "2024-08-30",
-    supplier: "MediPharm",
+    supplier: "Sunpharma",
     status: "in-stock",
   },
   {
@@ -84,9 +84,9 @@ const inventoryData = [
     name: "Atorvastatin 20mg",
     category: "Statins",
     stock: 30,
-    price: 15.25,
+    price: 420.50,
     expiryDate: "2025-03-22",
-    supplier: "MediSource",
+    supplier: "Zydus",
     status: "low-stock",
   },
   {
@@ -94,9 +94,9 @@ const inventoryData = [
     name: "Metformin 500mg",
     category: "Antidiabetics",
     stock: 15,
-    price: 7.99,
+    price: 200.75,
     expiryDate: "2024-09-18",
-    supplier: "PharmaCare",
+    supplier: "Cipla",
     status: "low-stock",
   },
   {
@@ -104,9 +104,9 @@ const inventoryData = [
     name: "Ibuprofen 400mg",
     category: "NSAIDs",
     stock: 5,
-    price: 6.50,
+    price: 115.50,
     expiryDate: "2024-11-05",
-    supplier: "MediPharm",
+    supplier: "Sunpharma",
     status: "critical",
   },
   {
@@ -114,9 +114,9 @@ const inventoryData = [
     name: "Omeprazole 20mg",
     category: "PPIs",
     stock: 0,
-    price: 9.25,
+    price: 210.25,
     expiryDate: "2025-01-20",
-    supplier: "MediSource",
+    supplier: "Zydus",
     status: "out-of-stock",
   },
   {
@@ -124,9 +124,9 @@ const inventoryData = [
     name: "Simvastatin 10mg",
     category: "Statins",
     stock: 62,
-    price: 11.30,
+    price: 310.50,
     expiryDate: "2024-10-12",
-    supplier: "PharmaCare",
+    supplier: "Cipla",
     status: "in-stock",
   },
   {
@@ -134,9 +134,9 @@ const inventoryData = [
     name: "Losartan 50mg",
     category: "ARBs",
     stock: 25,
-    price: 14.75,
+    price: 375.25,
     expiryDate: "2024-07-28",
-    supplier: "MediPharm",
+    supplier: "Sunpharma",
     status: "low-stock",
   },
   {
@@ -144,9 +144,9 @@ const inventoryData = [
     name: "Cetirizine 10mg",
     category: "Antihistamines",
     stock: 78,
-    price: 7.25,
+    price: 160.50,
     expiryDate: "2024-12-30",
-    supplier: "MediSource",
+    supplier: "Zydus",
     status: "in-stock",
   },
 ];
@@ -301,7 +301,7 @@ const InventoryTable = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Price (₹)</TableHead>
                   <TableHead>Expiry Date</TableHead>
                   <TableHead>Supplier</TableHead>
                   <TableHead>Status</TableHead>
@@ -321,7 +321,7 @@ const InventoryTable = () => {
                     </TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell className="text-right">{item.stock}</TableCell>
-                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
                     <TableCell>{item.expiryDate}</TableCell>
                     <TableCell>{item.supplier}</TableCell>
                     <TableCell>{getStatusBadge(item.status)}</TableCell>
@@ -407,7 +407,7 @@ const InventoryTable = () => {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right">Price ($)</Label>
+              <Label htmlFor="price" className="text-right">Price (₹)</Label>
               <Input 
                 id="price" 
                 type="number"
@@ -438,11 +438,11 @@ const InventoryTable = () => {
                   <SelectValue placeholder="Select supplier" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MediPharm">MediPharm</SelectItem>
-                  <SelectItem value="PharmaCare">PharmaCare</SelectItem>
-                  <SelectItem value="MediSource">MediSource</SelectItem>
-                  <SelectItem value="Global Pharma Solutions">Global Pharma Solutions</SelectItem>
-                  <SelectItem value="MediTech Supplies">MediTech Supplies</SelectItem>
+                  <SelectItem value="Sunpharma">Sunpharma</SelectItem>
+                  <SelectItem value="Cipla">Cipla</SelectItem>
+                  <SelectItem value="Zydus">Zydus</SelectItem>
+                  <SelectItem value="Dr. Reddy's">Dr. Reddy's</SelectItem>
+                  <SelectItem value="Lupin">Lupin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

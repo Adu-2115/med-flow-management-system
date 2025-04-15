@@ -22,27 +22,29 @@ const LoginForm = () => {
   const { signIn } = useAuth();
   const isDevelopment = import.meta.env.DEV;
 
-  // Demo credentials by user type
+  // Demo credentials by user type (using Indian names)
   const demoCredentials = {
     admin: {
-      email: "admin@halomed.com",
-      password: "admin123"
+      email: "raj.sharma@halomed.com",
+      password: "admin123",
+      name: "Raj Sharma"
     },
     staff: {
-      email: "staff@halomed.com",
-      password: "staff123"
+      email: "priya.patel@halomed.com",
+      password: "staff123",
+      name: "Priya Patel"
     },
     customer: {
-      email: "customer@halomed.com",
-      password: "customer123"
+      email: "amit.kumar@gmail.com",
+      password: "customer123",
+      name: "Amit Kumar"
     }
   };
 
-  // Set default credentials based on selected user type
+  // Set credentials based on selected user type
   const setDefaultCredentials = (type: UserType) => {
-    setEmail(demoCredentials[type].email);
-    setPassword(demoCredentials[type].password);
     setUserType(type);
+    // We don't autofill the email and password anymore as requested
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +67,7 @@ const LoginForm = () => {
           
           setTimeout(() => {
             toast.success("Login successful", {
-              description: `Welcome to HaloMed (${userType.charAt(0).toUpperCase() + userType.slice(1)})`
+              description: `Welcome to HaloMed, ${demoCredentials[userType].name} (${userType.charAt(0).toUpperCase() + userType.slice(1)})`
             });
             navigate("/dashboard");
             setIsLoading(false);
@@ -171,7 +173,9 @@ const LoginForm = () => {
           <p>
             Test credentials for selected user type:
             <span className="block mt-1 text-pharmacy-purple">
-              Email: {demoCredentials[userType].email} | Password: {demoCredentials[userType].password}
+              {userType === "admin" && "Admin: " + demoCredentials.admin.email + " | Password: " + demoCredentials.admin.password}
+              {userType === "staff" && "Staff: " + demoCredentials.staff.email + " | Password: " + demoCredentials.staff.password}
+              {userType === "customer" && "Customer: " + demoCredentials.customer.email + " | Password: " + demoCredentials.customer.password}
             </span>
           </p>
         </div>
