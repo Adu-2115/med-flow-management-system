@@ -1,93 +1,58 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "@/components/ui/sonner";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginForm = () => {
-  const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userRole, setUserRole] = useState("admin");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate loading
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Simple validation
-      if (!username || !password) {
-        toast.error("Please enter both username and password");
-        return;
-      }
-      
-      // Since this is a demo, we'll just redirect based on the role
+    try {
+      await signIn(email, password);
       navigate("/dashboard");
-      toast.success(`Welcome back, ${username}!`, {
-        description: `You are logged in as ${userRole}`,
-      });
-    }, 1000);
-  };
-
-  const handleForgotPassword = () => {
-    toast.info("Please try again or contact your administrator", {
-      description: "Password reset functionality is not available in demo mode",
-    });
+    } catch (error) {
+      console.error("Login error:", error);
+      // Error is handled in the auth context
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Card className="w-[350px] md:w-[400px]">
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>
-          Enter your credentials to access the system
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleLogin}>
-        <CardContent className="space-y-4">
+    <Card>
+      <CardContent className="pt-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Email
+            </label>
             <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Button
-                variant="link"
-                size="sm"
-                className="p-0 h-auto text-sm"
-                type="button"
-                onClick={handleForgotPassword}
-              >
-                Forgot Password?
-              </Button>
+              <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Password
+              </label>
+              <a href="#" className="text-sm text-pharmacy-purple hover:text-purple-700">
+                Forgot password?
+              </a>
             </div>
             <Input
               id="password"
@@ -95,28 +60,30 @@ const LoginForm = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Login As</Label>
-            <Select value={userRole} onValueChange={setUserRole}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Administrator</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-                <SelectItem value="customer">Customer</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full bg-pharmacy-purple hover:bg-purple-700" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                Signing in...
+              </>
+            ) : (
+              "Sign in"
+            )}
           </Button>
-        </CardFooter>
-      </form>
+        </form>
+
+        <div className="mt-6 text-center text-sm">
+          <p>
+            Test credentials:
+            <span className="block mt-1 text-pharmacy-purple">
+              Email: admin@halomed.com | Password: password
+            </span>
+          </p>
+        </div>
+      </CardContent>
     </Card>
   );
 };

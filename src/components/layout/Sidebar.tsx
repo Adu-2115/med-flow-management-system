@@ -1,10 +1,11 @@
 
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Home,
   Package,
@@ -54,8 +55,12 @@ const SidebarItem = ({ icon: Icon, label, to, collapsed }: SidebarItemProps) => 
 );
 
 const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
-  const handleLogout = () => {
-    window.location.href = "/login";
+  const { signOut, user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/login");
   };
   
   return (
@@ -107,8 +112,8 @@ const Sidebar = ({ collapsed, toggleSidebar }: SidebarProps) => {
               <div className="flex items-center gap-2">
                 <UserCircle className="h-6 w-6" />
                 <div>
-                  <p className="text-sm font-medium">Admin User</p>
-                  <p className="text-xs text-muted-foreground">Administrator</p>
+                  <p className="text-sm font-medium">{user?.full_name || "Admin User"}</p>
+                  <p className="text-xs text-muted-foreground">{user?.role || "Administrator"}</p>
                 </div>
               </div>
             </>

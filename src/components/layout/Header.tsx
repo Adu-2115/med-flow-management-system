@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   title: string;
@@ -19,6 +20,8 @@ interface HeaderProps {
 }
 
 const Header = ({ title, showNotImplemented }: HeaderProps) => {
+  const { user } = useAuth();
+  
   return (
     <header className="border-b bg-white py-4 px-6">
       <div className="flex items-center justify-between">
@@ -74,6 +77,12 @@ const Header = ({ title, showNotImplemented }: HeaderProps) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
+          {user && (
+            <span className="hidden md:inline-block text-sm text-muted-foreground">
+              Welcome, {user.full_name || user.email}
+            </span>
+          )}
         </div>
       </div>
     </header>

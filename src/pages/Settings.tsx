@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +25,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/sonner";
 import { useForm } from "react-hook-form";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   User, 
   Bell, 
@@ -42,29 +43,42 @@ import {
 
 const Settings = () => {
   const [loading, setLoading] = useState(false);
-
-  const handleSave = () => {
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Settings saved successfully", {
-        description: "Your changes have been applied"
-      });
-    }, 1000);
-  };
+  const { user, updateProfile } = useAuth();
 
   const form = useForm({
     defaultValues: {
-      fullName: "Admin User",
-      email: "admin@halomed.com",
-      role: "administrator",
+      fullName: user?.full_name || "Admin User",
+      email: user?.email || "admin@halomed.com",
+      role: user?.role || "administrator",
       theme: "system",
       notifications: true,
       emailAlerts: true,
       stockAlerts: true,
       language: "english",
+    }
+  });
+
+  useEffect(() => {
+    // Update form when user data changes
+    if (user) {
+      form.setValue("fullName", user.full_name || "");
+      form.setValue("email", user.email);
+      form.setValue("role", user.role || "administrator");
+    }
+  }, [user, form]);
+
+  const handleSave = form.handleSubmit(async (data) => {
+    setLoading(true);
+    
+    try {
+      await updateProfile({
+        full_name: data.fullName,
+        role: data.role
+      });
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    } finally {
+      setLoading(false);
     }
   });
 
@@ -123,7 +137,7 @@ const Settings = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} readOnly />
                         </FormControl>
                       </FormItem>
                     )}
@@ -187,7 +201,7 @@ const Settings = () => {
                 <Button onClick={handleSave} disabled={loading}>
                   {loading ? (
                     <>
-                      <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
+                      <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                       Saving...
                     </>
                   ) : (
@@ -218,7 +232,7 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">Connected to Stripe</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Configure</Button>
+                  <Button variant="outline" size="sm" onClick={() => toast.info("Configuration interface opened")}>Configure</Button>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -231,7 +245,15 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">Not connected</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Connect</Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => toast.success("Printer connected successfully", {
+                      description: "Your printer is now ready to use"
+                    })}
+                  >
+                    Connect
+                  </Button>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -244,7 +266,13 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">Connected (XYZ-100)</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Configure</Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => toast.info("Scanner configuration opened")}
+                  >
+                    Configure
+                  </Button>
                 </div>
               </div>
             </CardContent>
