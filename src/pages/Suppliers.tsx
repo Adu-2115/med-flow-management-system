@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,10 +20,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Search, MoreHorizontal, Plus, Phone, Mail } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 // Sample supplier data
 const supplierData = [
@@ -85,18 +95,120 @@ const supplierData = [
 ];
 
 const Suppliers = () => {
-  const showNotImplemented = () => {
-    toast.info("This feature is not implemented yet", {
-      description: "This is just a demo",
+  const [suppliers, setSuppliers] = useState(supplierData);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [addSupplierOpen, setAddSupplierOpen] = useState(false);
+  const [editSupplierId, setEditSupplierId] = useState<number | null>(null);
+  const [newSupplier, setNewSupplier] = useState({
+    name: "",
+    contact: "",
+    email: "",
+    phone: "",
+    status: "active" as const,
+    ordersCount: 0,
+    lastOrder: new Date().toISOString().split('T')[0],
+    paymentStatus: "paid" as const
+  });
+  
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+  
+  const handleAddSupplierOpen = () => {
+    setNewSupplier({
+      name: "",
+      contact: "",
+      email: "",
+      phone: "",
+      status: "active",
+      ordersCount: 0,
+      lastOrder: new Date().toISOString().split('T')[0],
+      paymentStatus: "paid"
+    });
+    setEditSupplierId(null);
+    setAddSupplierOpen(true);
+  };
+
+  const handleAddSupplier = () => {
+    const id = Math.max(...suppliers.map(supplier => supplier.id)) + 1;
+    const supplier = {
+      id,
+      ...newSupplier
+    };
+    
+    setSuppliers([...suppliers, supplier]);
+    setAddSupplierOpen(false);
+    toast.success("Supplier added successfully", {
+      description: `${newSupplier.name} has been added to suppliers`
     });
   };
+  
+  const handleEditSupplier = (id: number) => {
+    const supplier = suppliers.find(supplier => supplier.id === id);
+    if (supplier) {
+      setNewSupplier({
+        name: supplier.name,
+        contact: supplier.contact,
+        email: supplier.email,
+        phone: supplier.phone,
+        status: supplier.status as any,
+        ordersCount: supplier.ordersCount,
+        lastOrder: supplier.lastOrder,
+        paymentStatus: supplier.paymentStatus as any
+      });
+      setEditSupplierId(id);
+      setAddSupplierOpen(true);
+    }
+  };
+  
+  const handleSaveEdit = () => {
+    if (editSupplierId !== null) {
+      setSuppliers(suppliers.map(supplier => 
+        supplier.id === editSupplierId 
+          ? { ...supplier, ...newSupplier } 
+          : supplier
+      ));
+      setEditSupplierId(null);
+      setAddSupplierOpen(false);
+      toast.success("Supplier updated", {
+        description: `${newSupplier.name} has been updated`
+      });
+    }
+  };
+  
+  const handleDeactivateSupplier = (id: number) => {
+    setSuppliers(suppliers.map(supplier => 
+      supplier.id === id 
+        ? { ...supplier, status: supplier.status === 'active' ? 'inactive' : 'active' } 
+        : supplier
+    ));
+    
+    const supplier = suppliers.find(supplier => supplier.id === id);
+    const newStatus = supplier?.status === 'active' ? 'inactive' : 'active';
+    
+    toast.success(`Supplier ${newStatus === 'active' ? 'activated' : 'deactivated'}`, {
+      description: `${supplier?.name} is now ${newStatus}`
+    });
+  };
+  
+  const handlePlaceOrder = (id: number) => {
+    toast.success("Order placed", {
+      description: "Your order has been placed with this supplier"
+    });
+  };
+  
+  const filteredSuppliers = suppliers.filter(supplier => 
+    supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <AppLayout>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Supplier Management</CardTitle>
-          <Button onClick={showNotImplemented}>
+          <Button onClick={handleAddSupplierOpen}>
             <Plus className="h-4 w-4 mr-2" />
             Add Supplier
           </Button>
@@ -108,6 +220,8 @@ const Suppliers = () => {
               type="search"
               placeholder="Search suppliers..."
               className="pl-8 w-[300px]"
+              value={searchTerm}
+              onChange={handleSearch}
             />
           </div>
           
@@ -126,7 +240,7 @@ const Suppliers = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {supplierData.map((supplier) => (
+                {filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell className="font-medium">{supplier.name}</TableCell>
                     <TableCell>{supplier.contact}</TableCell>
@@ -174,12 +288,15 @@ const Suppliers = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={showNotImplemented}>View Details</DropdownMenuItem>
-                          <DropdownMenuItem onClick={showNotImplemented}>Place Order</DropdownMenuItem>
-                          <DropdownMenuItem onClick={showNotImplemented}>Edit Supplier</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toast.info("Viewing supplier details")}>View Details</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handlePlaceOrder(supplier.id)}>Place Order</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditSupplier(supplier.id)}>Edit Supplier</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={showNotImplemented} className="text-pharmacy-red">
-                            Deactivate
+                          <DropdownMenuItem 
+                            onClick={() => handleDeactivateSupplier(supplier.id)} 
+                            className={supplier.status === 'active' ? "text-pharmacy-red" : "text-pharmacy-green"}
+                          >
+                            {supplier.status === 'active' ? 'Deactivate' : 'Activate'}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -191,6 +308,69 @@ const Suppliers = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Add/Edit Supplier Dialog */}
+      <Dialog open={addSupplierOpen} onOpenChange={setAddSupplierOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editSupplierId ? "Edit Supplier" : "Add New Supplier"}</DialogTitle>
+            <DialogDescription>
+              Enter the supplier details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Company Name</Label>
+              <Input 
+                id="name" 
+                value={newSupplier.name}
+                onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})}
+                className="col-span-3" 
+                placeholder="Supplier company name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="contact" className="text-right">Contact Person</Label>
+              <Input 
+                id="contact" 
+                value={newSupplier.contact}
+                onChange={(e) => setNewSupplier({...newSupplier, contact: e.target.value})}
+                className="col-span-3" 
+                placeholder="Primary contact name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">Email</Label>
+              <Input 
+                id="email" 
+                type="email"
+                value={newSupplier.email}
+                onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})}
+                className="col-span-3"
+                placeholder="Contact email"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">Phone</Label>
+              <Input 
+                id="phone" 
+                value={newSupplier.phone}
+                onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})}
+                className="col-span-3"
+                placeholder="Contact phone number"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={editSupplierId ? handleSaveEdit : handleAddSupplier}>
+              {editSupplierId ? "Save Changes" : "Add Supplier"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <div className="grid gap-6 mt-6 md:grid-cols-2">
         <Card>

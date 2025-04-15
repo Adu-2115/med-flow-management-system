@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, MoreHorizontal, Edit, Trash, AlertCircle } from "lucide-react";
+import { Search, Filter, MoreHorizontal, Edit, Trash, AlertCircle, Plus } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -27,6 +27,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 
@@ -136,19 +153,96 @@ const inventoryData = [
 
 const InventoryTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [inventory, setInventory] = useState(inventoryData);
+  const [addMedicineOpen, setAddMedicineOpen] = useState(false);
+  const [editItemId, setEditItemId] = useState<number | null>(null);
+  const [newMedicine, setNewMedicine] = useState({
+    name: "",
+    category: "Analgesics",
+    stock: 0,
+    price: 0,
+    expiryDate: "",
+    supplier: "MediPharm",
+    status: "in-stock" as const
+  });
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-  
-  const showNotImplemented = () => {
-    toast.info("This feature is not implemented yet", {
-      description: "This is just a demo",
+
+  const handleAddMedicineOpen = () => {
+    setNewMedicine({
+      name: "",
+      category: "Analgesics",
+      stock: 0,
+      price: 0,
+      expiryDate: "",
+      supplier: "MediPharm",
+      status: "in-stock"
     });
+    setAddMedicineOpen(true);
+  };
+
+  const handleAddMedicine = () => {
+    const id = Math.max(...inventory.map(item => item.id)) + 1;
+    const medicine = {
+      id,
+      ...newMedicine,
+      status: newMedicine.stock > 30 ? "in-stock" : newMedicine.stock > 10 ? "low-stock" : newMedicine.stock > 0 ? "critical" : "out-of-stock"
+    };
+    
+    setInventory([...inventory, medicine]);
+    setAddMedicineOpen(false);
+    toast.success("Medicine added successfully", {
+      description: `${newMedicine.name} has been added to inventory`
+    });
+  };
+  
+  const handleDeleteItem = (id: number) => {
+    setInventory(inventory.filter(item => item.id !== id));
+    toast.success("Medicine removed", {
+      description: "The item has been deleted from inventory"
+    });
+  };
+  
+  const handleEditItem = (id: number) => {
+    const item = inventory.find(item => item.id === id);
+    if (item) {
+      setNewMedicine({
+        name: item.name,
+        category: item.category,
+        stock: item.stock,
+        price: item.price,
+        expiryDate: item.expiryDate,
+        supplier: item.supplier,
+        status: item.status as any
+      });
+      setEditItemId(id);
+      setAddMedicineOpen(true);
+    }
+  };
+  
+  const handleSaveEdit = () => {
+    if (editItemId !== null) {
+      setInventory(inventory.map(item => 
+        item.id === editItemId 
+          ? { 
+              ...item, 
+              ...newMedicine, 
+              status: newMedicine.stock > 30 ? "in-stock" : newMedicine.stock > 10 ? "low-stock" : newMedicine.stock > 0 ? "critical" : "out-of-stock" 
+            } 
+          : item
+      ));
+      setEditItemId(null);
+      setAddMedicineOpen(false);
+      toast.success("Medicine updated", {
+        description: `${newMedicine.name} has been updated`
+      });
+    }
   };
 
   // Filter the inventory based on search term
-  const filteredInventory = inventoryData.filter(item => 
+  const filteredInventory = inventory.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
@@ -170,93 +264,200 @@ const InventoryTable = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Inventory Management</CardTitle>
-        <CardDescription>Manage your pharmacy inventory, track stock levels and expiry dates</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search medicines..."
-              className="w-[240px] md:w-[300px] lg:w-[400px] pl-8"
-              value={searchTerm}
-              onChange={handleSearch}
-            />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Inventory Management</CardTitle>
+          <CardDescription>Manage your pharmacy inventory, track stock levels and expiry dates</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-4">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search medicines..."
+                className="w-[240px] md:w-[300px] lg:w-[400px] pl-8"
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => toast.info("Filters applied")}>
+                <Filter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+              <Button onClick={handleAddMedicineOpen}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Medicine
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={showNotImplemented}>
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-            <Button onClick={showNotImplemented}>
-              Add Medicine
-            </Button>
-          </div>
-        </div>
-        
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Stock</TableHead>
-                <TableHead className="text-right">Price</TableHead>
-                <TableHead>Expiry Date</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInventory.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-1">
-                      {item.name}
-                      {item.status === "critical" && (
-                        <AlertCircle size={16} className="text-pharmacy-red" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.category}</TableCell>
-                  <TableCell className="text-right">{item.stock}</TableCell>
-                  <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                  <TableCell>{item.expiryDate}</TableCell>
-                  <TableCell>{item.supplier}</TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={showNotImplemented}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={showNotImplemented} className="text-pharmacy-red">
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead>Expiry Date</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredInventory.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-1">
+                        {item.name}
+                        {item.status === "critical" && (
+                          <AlertCircle size={16} className="text-pharmacy-red" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{item.category}</TableCell>
+                    <TableCell className="text-right">{item.stock}</TableCell>
+                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                    <TableCell>{item.expiryDate}</TableCell>
+                    <TableCell>{item.supplier}</TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEditItem(item.id)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-pharmacy-red">
+                            <Trash className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Add/Edit Medicine Dialog */}
+      <Dialog open={addMedicineOpen} onOpenChange={setAddMedicineOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editItemId ? "Edit Medicine" : "Add New Medicine"}</DialogTitle>
+            <DialogDescription>
+              Enter the details of the medicine to add to the inventory.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Name</Label>
+              <Input 
+                id="name" 
+                value={newMedicine.name}
+                onChange={(e) => setNewMedicine({...newMedicine, name: e.target.value})}
+                className="col-span-3" 
+                placeholder="Medicine name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">Category</Label>
+              <Select 
+                value={newMedicine.category}
+                onValueChange={(value) => setNewMedicine({...newMedicine, category: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Analgesics">Analgesics</SelectItem>
+                  <SelectItem value="Antibiotics">Antibiotics</SelectItem>
+                  <SelectItem value="Antihistamines">Antihistamines</SelectItem>
+                  <SelectItem value="Statins">Statins</SelectItem>
+                  <SelectItem value="NSAIDs">NSAIDs</SelectItem>
+                  <SelectItem value="PPIs">PPIs</SelectItem>
+                  <SelectItem value="Antidiabetics">Antidiabetics</SelectItem>
+                  <SelectItem value="ARBs">ARBs</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="stock" className="text-right">Stock</Label>
+              <Input 
+                id="stock" 
+                type="number"
+                value={newMedicine.stock}
+                onChange={(e) => setNewMedicine({...newMedicine, stock: parseInt(e.target.value) || 0})}
+                className="col-span-3"
+                placeholder="Quantity in stock"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right">Price ($)</Label>
+              <Input 
+                id="price" 
+                type="number"
+                value={newMedicine.price}
+                onChange={(e) => setNewMedicine({...newMedicine, price: parseFloat(e.target.value) || 0})}
+                step="0.01"
+                className="col-span-3"
+                placeholder="Price per unit"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="expiry" className="text-right">Expiry Date</Label>
+              <Input 
+                id="expiry" 
+                type="date"
+                value={newMedicine.expiryDate}
+                onChange={(e) => setNewMedicine({...newMedicine, expiryDate: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="supplier" className="text-right">Supplier</Label>
+              <Select 
+                value={newMedicine.supplier}
+                onValueChange={(value) => setNewMedicine({...newMedicine, supplier: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MediPharm">MediPharm</SelectItem>
+                  <SelectItem value="PharmaCare">PharmaCare</SelectItem>
+                  <SelectItem value="MediSource">MediSource</SelectItem>
+                  <SelectItem value="Global Pharma Solutions">Global Pharma Solutions</SelectItem>
+                  <SelectItem value="MediTech Supplies">MediTech Supplies</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={editItemId ? handleSaveEdit : handleAddMedicine}>
+              {editItemId ? "Save Changes" : "Add Medicine"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
